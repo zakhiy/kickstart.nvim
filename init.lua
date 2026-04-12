@@ -91,12 +91,17 @@ vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
 -- Set to true if you have a Nerd Font installed and selected in the terminal
-vim.g.have_nerd_font = false
+vim.g.have_nerd_font = true
 
 -- [[ Setting options ]]
 -- See `:help vim.o`
 -- NOTE: You can change these options as you wish!
 --  For more options, you can see `:help option-list`
+
+-- Enable true color support and transparent background
+vim.o.termguicolors = true
+vim.api.nvim_set_hl(0, 'Normal', { bg = 'none' })
+vim.api.nvim_set_hl(0, 'NormalFloat', { bg = 'none' })
 
 -- Make line numbers default
 vim.o.number = true
@@ -248,6 +253,9 @@ rtp:prepend(lazypath)
 require('lazy').setup({
   -- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
   'NMAC427/guess-indent.nvim', -- Detect tabstop and shiftwidth automatically
+
+  -- Seamless navigation between tmux panes and vim splits
+  'christoomey/vim-tmux-navigator',
 
   -- NOTE: Plugins can also be added by using a table,
   -- with the first argument being the link and the following
@@ -661,6 +669,18 @@ require('lazy').setup({
       --  So, we create new capabilities with blink.cmp, and then broadcast that to the servers.
       local capabilities = require('blink.cmp').get_lsp_capabilities()
 
+      vim.lsp.config('pyright', {
+        before_init = function(_, config)
+          local root = config.root_dir or vim.fn.getcwd()
+
+          if vim.env.VIRTUAL_ENV then
+            config.settings.python.pythonPath = vim.fs.joinpath(vim.env.VIRTUAL_ENV, 'bin', 'python')
+          else
+            local venv = vim.fs.joinpath(root, '.venv', 'bin', 'python')
+            config.settings.python.pythonPath = vim.fn.executable(venv) == 1 and venv or vim.fn.exepath 'python3' or 'python'
+          end
+        end,
+      })
       -- Enable the following language servers
       --  Feel free to add/remove any LSPs that you want here. They will automatically be installed.
       --
@@ -670,8 +690,54 @@ require('lazy').setup({
       --  - capabilities (table): Override fields in capabilities. Can be used to disable certain LSP features.
       --  - settings (table): Override the default settings passed when initializing the server.
       --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
+      local function clangd_compile_commands_dir(root_dir)
+        if not root_dir or root_dir == '' then
+          return nil
+        end
+
+        for _, dir in ipairs {
+          root_dir,
+          vim.fs.joinpath(root_dir, 'build'),
+          vim.fs.joinpath(root_dir, 'cmake-build-debug'),
+          vim.fs.joinpath(root_dir, 'cmake-build-release'),
+          vim.fs.joinpath(root_dir, 'out', 'build'),
+        } do
+          if vim.fn.filereadable(vim.fs.joinpath(dir, 'compile_commands.json')) == 1 then
+            return dir
+          end
+        end
+      end
+
       local servers = {
-        clangd = {},
+        clangd = {
+          root_dir = function(bufname)
+            local marker = vim.fs.find({ '.git', 'compile_commands.json', 'compile_flags.txt', 'CMakeLists.txt' }, {
+              path = bufname,
+              upward = true,
+            })[1]
+
+            return marker and vim.fs.dirname(marker) or vim.fn.getcwd()
+          end,
+          cmd = { 'clangd', '--background-index', '--header-insertion=never' },
+          on_new_config = function(new_config, new_root_dir)
+            local compile_commands_dir = clangd_compile_commands_dir(new_root_dir)
+            if not compile_commands_dir then
+              return
+            end
+
+            local has_compile_commands_dir = false
+            for _, arg in ipairs(new_config.cmd or {}) do
+              if vim.startswith(arg, '--compile-commands-dir=') then
+                has_compile_commands_dir = true
+                break
+              end
+            end
+
+            if not has_compile_commands_dir then
+              table.insert(new_config.cmd, '--compile-commands-dir=' .. compile_commands_dir)
+            end
+          end,
+        },
         gopls = {},
         pyright = {},
         -- rust_analyzer = {},
@@ -835,7 +901,7 @@ require('lazy').setup({
         -- <c-k>: Toggle signature help
         --
         -- See :h blink-cmp-config-keymap for defining your own keymap
-        preset = 'default',
+        preset = 'super-tab',
 
         -- For more advanced Luasnip keymaps (e.g. selecting choice nodes, expansion) see:
         --    https://github.com/L3MON4D3/LuaSnip?tab=readme-ov-file#keymaps
@@ -886,8 +952,11 @@ require('lazy').setup({
     config = function()
       ---@diagnostic disable-next-line: missing-fields
       require('tokyonight').setup {
+        transparent = true, -- Enable transparent background
         styles = {
           comments = { italic = false }, -- Disable italics in comments
+          sidebars = 'transparent', -- Make sidebars transparent
+          floats = 'transparent', -- Make floating windows transparent
         },
       }
 
@@ -895,11 +964,23 @@ require('lazy').setup({
       -- Like many other themes, this one has different styles, and you could load
       -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
       vim.cmd.colorscheme 'tokyonight-night'
+
+      -- Force transparent background after colorscheme loads
+      vim.api.nvim_set_hl(0, 'Normal', { bg = 'none' })
+      vim.api.nvim_set_hl(0, 'NormalFloat', { bg = 'none' })
+      vim.api.nvim_set_hl(0, 'NormalNC', { bg = 'none' })
+      vim.api.nvim_set_hl(0, 'SignColumn', { bg = 'none' })
+      vim.api.nvim_set_hl(0, 'EndOfBuffer', { bg = 'none' })
     end,
   },
 
   -- Highlight todo, notes, etc in comments
-  { 'folke/todo-comments.nvim', event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = false } },
+  {
+    'folke/todo-comments.nvim',
+    event = 'VimEnter',
+    dependencies = { 'nvim-lua/plenary.nvim' },
+    opts = { signs = false },
+  },
 
   { -- Collection of various small independent plugins/modules
     'echasnovski/mini.nvim',
@@ -944,7 +1025,19 @@ require('lazy').setup({
     main = 'nvim-treesitter.configs', -- Sets main module to use for opts
     -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
     opts = {
-      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc' },
+      ensure_installed = {
+        'bash',
+        'c',
+        'diff',
+        'html',
+        'lua',
+        'luadoc',
+        'markdown',
+        'markdown_inline',
+        'query',
+        'vim',
+        'vimdoc',
+      },
       -- Autoinstall languages that are not installed
       auto_install = true,
       highlight = {
@@ -1011,6 +1104,27 @@ require('lazy').setup({
     },
   },
 })
+
+vim.api.nvim_create_user_command('CopyDiags', function()
+  -- Fetch the unfiltered diagnostic payload for the current buffer (0)
+  local diags = vim.diagnostic.get(0)
+
+  if #diags == 0 then
+    vim.notify('Buffer is clean. Nothing to copy.', vim.log.levels.INFO)
+    return
+  end
+
+  local output = {}
+  for _, d in ipairs(diags) do
+    -- Bi-directional mapping: translates integer severity back to string (e.g., "ERROR", "WARN")
+    local severity_name = vim.diagnostic.severity[d.severity] or 'UNKNOWN'
+    table.insert(output, string.format('Line %d [%s]: %s', d.lnum + 1, severity_name, d.message))
+  end
+
+  -- Yank directly to the system clipboard
+  vim.fn.setreg('+', table.concat(output, '\n'))
+  vim.notify(string.format('Copied %d annotations to clipboard.', #diags), vim.log.levels.INFO)
+end, { desc = 'Copy all LSP diagnostics to clipboard' })
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
