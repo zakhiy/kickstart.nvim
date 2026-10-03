@@ -4,15 +4,17 @@
 
 ### Local interactive tutorial
 
-Run `:Tut` (`:KickstartTutorial` also works) for a workbook tailored to this configuration.
+Type `:tut` (`:Tut` and `:KickstartTutorial` also work) for a workbook tailored to this configuration.
 Practice motions, editing, search, windows, LSP, Git, and the config sections.
-Open `:Tut 2` for power editing or `:Tut 3` for tooling and workflow; each chapter
-has its own saved workbook and rank. Live badges check editing challenges and track XP.
+Open `:tut 2` for power editing or `:tut 3` for tooling and workflow; each chapter
+has its own saved workbook and rank. Live checkboxes, badges, and XP follow your editing results together.
 Use buffer-local `Space tn/tp` for next/previous missions, `Space ti` for hints, `Space tc` to
 check, and `Space tm` to self-mark workflow missions. Self-marking records
 "I tried this" for tasks without a gradeable text answer. Save with `:w` to record
 results and reopen to resume. Existing personal workbooks gain these controls
-without replacing their edits. `:TutLab` creates a disposable Lua project for
+without replacing their edits. `:tut!`, `:tut! 2`, or `:tut! 3` refreshes the introduction
+above section 1, replacing introductory notes but keeping exercises and progress.
+`:TutLab` creates a disposable Lua project for
 tooling exercises without overwriting existing lab files or installing anything.
 Next-mission navigation pauses at new lesson headings so explanations come first.
 Your personal copies live under Neovim's data directory; the source templates are

@@ -1,52 +1,27 @@
 # Kickstart: from passenger to pilot
 
-Chapter 1: an interactive workbook for THIS config, not an old video.
-Do sections 1–4 first (about 20–30 minutes); return for the rest.
-Allow 45–75 minutes for the full chapter, excluding tool setup and extra practice.
-These are rough planning estimates, not measured completion times.
-Accuracy before speed. Arrow keys are allowed. Learn a few keys at a time.
-This covers everyday Kickstart workflows, not every plugin or Vim feature.
+You don't need to memorize your config. Let's learn it by making small edits.
+Start with sections 1–4: roughly 20–30 minutes. The full chapter is about
+45–75 minutes, plus any setup or extra practice. Take it at your own pace.
 
 ## Your cockpit
 
-Open with :Tut (:KickstartTutorial still works). This creates a personal copy in Neovim's
-data directory; the template stays untouched. No notes directory is required.
-Markdown rendering is disabled only in this workbook so markers stay visible.
-:w saves edits AND progress. Reopen with :Tut to resume.
-After saving, :Tut 2 opens power editing; :Tut 3 opens tooling and workflow.
-Each chapter has its own workbook and score, preserving this chapter's progress.
-Live badges grade editing blocks as you type; the header tracks XP and rank.
-Each completed mission earns 10 XP. Complete all missions to become PILOT.
-Space tn / :TutorialNext jumps to the next unfinished mission (wraps around).
-When entering a new section it stops at the lesson heading: read the explanation,
-then press Space tn again to reach the first unfinished mission in that section.
-Space tp / :TutorialPrevious goes to the previous mission, including passed ones.
-Space ti / :TutorialHint gives a hint for the mission at or above your cursor.
-Space tc / :TutorialCheck grades the five editing blocks and updates their boxes.
-Space tm / :TutorialMark self-marks the current workflow mission.
-Automatic checks also update checkboxes on :w. Live badges don't change your
-text or undo history; keep practicing with u and Ctrl-r as usual.
-:TutorialMark discover marks a self-assessed task (replace discover with its ID).
-You can also put the cursor on a checkbox's space and type rx to mark it.
-To unmark a task, put the cursor on its x and type r followed by Space.
-Checkpoints are not exams: automatic checks assess results, not keystrokes.
-Workflow missions remain self-assessed, not secretly tracked or auto-verified.
-Self-mark means "I tried this and understand it": returning from another file,
-hovering a symbol, or previewing a Git hunk leaves no reliable answer to grade.
-After trying a workflow mission, put the cursor on its checkbox and press Space tm.
-It gets a DONE (SELF-MARKED) badge, not an automatic PASS. XP is a motivation
-counter, not proof of mastery. Leave tasks unchecked if you haven't tried them.
-Keep the exercise/end markers intact and edit only the lines between them.
-First-time route: read a section, try its missions in order, then go to the next.
-Use Space tm on a workflow checkbox AFTER returning from its project exercise.
+Think of this as a practice file, not an exam. Four controls will get you going.
+Press Esc first. Space tn means press Space, then t, then n — one key at a time.
 
-Notation: Space sf means press Space, then s, then f; Ctrl-h means hold Ctrl
-and press h. Esc returns to Normal mode. Type colon commands, then Enter.
-Commands/key sequences below start in Normal mode unless stated otherwise.
+- Go: Space tn takes you to a lesson. Read it, then press it again for a mission.
+- Try: follow the mission. Stuck? Space ti gives you a hint.
+- Finish: editing challenges tick their box and show PASS when the text is right.
+  For a "try this" task, return to its checkbox and press Space tm once you've tried it.
+- Keep: type :w and press Enter to save. Come back with :tut whenever you like.
+
+Ready? Press Space tn. You can look up the other controls later.
 
 ## 1. Escape room: modes, movement, recovery
 
 Normal mode is your control panel; Insert mode types text; Visual mode selects.
+Use Esc to return to Normal mode before each key sequence. When you see Ctrl-r,
+hold Control and press r. Arrow keys are fine while you're finding your feet.
 i inserts before the cursor; a after it; A at line end; o opens a line below.
 Esc returns to Normal. v selects characters, V selects lines.
 h/j/k/l move left/down/up/right. w/b move by word; e goes to a word's end.
@@ -66,6 +41,7 @@ ciw replaces a word, diw deletes it, yiw copies it. p pastes after the cursor.
 dd deletes a line; yy copies it. Dot (.) repeats your last change.
 Put the cursor on the actual exercise text below each exercise marker, not the
 instructions. Hints assume your cursor is in that block. Use h/j/k/l to get there.
+Leave the exercise/end marker lines alone: they tell the checker what to grade.
 
 - [ ] `copy` On this line, press yy then p to duplicate it, then u to undo the copy.
 
@@ -236,9 +212,26 @@ For later review, share your saved workbook and ask for feedback on unchecked
 tasks. Checked workflow tasks mean self-reported completion, not automated proof.
 Run :echo expand('%:p') to find the saved file to attach or paste for review.
 
+## Other controls — look these up when you need them
+
+- Space tp goes to the previous mission. Space tn skips finished missions and wraps around.
+- Editing checkboxes tick live and clear if you undo the answer. :w records them in the file.
+- Space tc checks your edits manually. Uppercase :Tut still works too.
+- To unmark a task, put the cursor on its checkbox's x, press r, then Space.
+- :TutorialMark discover marks a specific workflow task without moving the cursor.
+- :tut! refreshes this introduction, not your exercises. It replaces any personal
+  notes above section 1; save first if you want to keep those elsewhere.
+
+PASS checks the result, not your technique. DONE (SELF-MARKED) is your own check-in
+for things like switching files or inspecting a symbol. XP is just encouragement:
+10 points per finished task, with PILOT rank when all are done. Leave skipped tasks
+unchecked; you can return to them later. Live badges don't change your undo history.
+Each chapter is saved separately in Neovim's data directory. This is your working
+copy, not the source template, and Markdown rendering stays off so markers are visible.
+
 ## Next chapters
 
-Save first, then :Tut 2 for registers, macros, Visual blocks, mini.surround,
-mini.ai, and safer bulk editing. :Tut 3 covers a disposable project, servers,
+Save first, then :tut 2 for registers, macros, Visual blocks, mini.surround,
+mini.ai, and safer bulk editing. :tut 3 covers a disposable project, servers,
 formatters, snippets, quickfix, terminals, Git review, custom modules, and optional
 linting/debugging. Chapters are independent: you can revisit an unchecked task later.

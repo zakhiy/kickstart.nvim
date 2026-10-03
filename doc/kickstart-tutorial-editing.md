@@ -1,21 +1,18 @@
 # Chapter 2: power editing — fewer keystrokes, better habits
 
-Open with :Tut 2. Prerequisite: Chapter 1's modes, operators, objects, and undo.
+Open with :tut 2. Prerequisite: Chapter 1's modes, operators, objects, and undo.
 Plan roughly 45–75 minutes, excluding extra practice; this is not a timed course.
 Seven editing challenges have live checks. Other tasks are self-assessed.
 Your Chapter 1 progress stays in its own file; this chapter saves as chapter-2.md.
 
 ## Flight controls
 
-Read each section before its missions. Space tn pauses at new lesson headings;
-press it again to reach the first unfinished mission. Space tp goes back.
-Space ti gives a hint; Space tc checks answers; Space tm marks a workflow task.
-:w records progress. :Tut 1 / :Tut 2 / :Tut 3 switches chapters AFTER saving.
-Commands start in Normal mode; Esc returns there. Ctrl means hold Control.
-Edit only text between exercise/end markers. Keep spacing exact for live checks.
-Checks grade the final text, NOT whether you used the intended technique.
-10 XP per completed task; ACE means all tasks in this chapter are completed.
-No need to earn every point now. Never risk real code just to tick a box.
+The controls are the same: Space tn to continue, Space ti for a hint, :w to save.
+Read each lesson before trying its missions. Press Esc before a Normal-mode command.
+Edit inside the exercise markers; leave the markers themselves alone.
+Checkboxes and PASS badges follow your result live; :w saves the ticks to the file.
+PASS checks your result, not your technique. For other tasks, Space tm is your
+"I tried this" check-in. Complete the chapter to earn ACE — no rush.
 
 ## 1. Registers: named pockets, not one fragile clipboard
 
@@ -155,5 +152,7 @@ Column edits → Visual block. Structural wrappers → surround. Delicate bulk e
 - [ ] `editing_lap` In a disposable note, combine a named register, a macro, and a block edit.
 
 Save with :w. Share this saved file for review (:echo expand('%:p') shows its path).
-Next: :Tut 3 for a practice project, language tooling, snippets, terminal workflows,
+Space tp goes back and Space tc checks manually. :tut! 2 refreshes only the intro
+above section 1, replacing any personal notes there while keeping exercise edits.
+Next: :tut 3 for a practice project, language tooling, snippets, terminal workflows,
 quickfix, Git review, plugin customization, and optional linting/debugging.

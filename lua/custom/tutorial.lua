@@ -106,6 +106,13 @@ local function render()
     local label = task.complete and '  PASS +10 XP' or (targets[task.id] and '  IN PROGRESS' or '  SELF-CHECK')
     if task.complete and not targets[task.id] then label = '  DONE (SELF-MARKED) +10 XP' end
     if targets[task.id] and not task.valid then label = '  RESTORE EXERCISE/END MARKERS' end
+    if targets[task.id] then
+      vim.api.nvim_buf_set_extmark(0, namespace, task.row - 1, 3, {
+        virt_text = { { task.complete and 'x' or ' ', task.complete and 'DiagnosticOk' or 'Normal' } },
+        virt_text_pos = 'overlay',
+        hl_mode = 'replace',
+      })
+    end
     vim.api.nvim_buf_set_extmark(0, namespace, task.row - 1, 0, {
       virt_text = { { label, task.complete and 'DiagnosticOk' or 'DiagnosticInfo' } },
     })
@@ -229,20 +236,50 @@ local function attach()
   render()
 end
 
-local function open(chapter)
+local function refresh_intro(source)
+  if not vim.bo.modifiable then
+    vim.notify('This workbook is not modifiable. Its introduction was left unchanged.', vim.log.levels.WARN)
+    return
+  end
+  local function first_lesson(lines)
+    for row, line in ipairs(lines) do
+      if line:match '^## 1%. ' then return row end
+    end
+  end
+  local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+  local current_start, source_start = first_lesson(lines), first_lesson(source)
+  if not current_start or not source_start then
+    vim.notify('Could not find section 1. No text was replaced.', vim.log.levels.WARN)
+    return
+  end
+  local introduction = vim.list_slice(source, 1, source_start - 1)
+  if table.concat(vim.list_slice(lines, 1, current_start - 1), '\n') ~= table.concat(introduction, '\n') then
+    vim.api.nvim_buf_set_lines(0, 0, current_start - 1, false, introduction)
+    vim.notify 'Introduction refreshed; exercise edits kept. Save with :w, or undo with u.'
+  else
+    vim.notify 'Your introduction is already up to date.'
+  end
+end
+
+local function open(chapter, refresh)
   local path = workbook_path(chapter)
-  if vim.fn.filereadable(path) == 0 then
-    local source = vim.fn.stdpath 'config' .. '/doc/' .. chapters[chapter].template
-    if vim.fn.filereadable(source) == 0 then
-      vim.notify('Tutorial template not found: ' .. source, vim.log.levels.ERROR)
+  local source
+  if vim.fn.filereadable(path) == 0 or refresh then
+    local template = vim.fn.stdpath 'config' .. '/doc/' .. chapters[chapter].template
+    if vim.fn.filereadable(template) == 0 then
+      vim.notify('Tutorial template not found: ' .. template, vim.log.levels.ERROR)
       return
     end
-    vim.fn.mkdir(vim.fn.fnamemodify(path, ':h'), 'p')
-    vim.fn.writefile(vim.fn.readfile(source), path)
+    source = vim.fn.readfile(template)
   end
-  vim.cmd.edit(vim.fn.fnameescape(path))
+  if vim.fn.filereadable(path) == 0 then
+    vim.fn.mkdir(vim.fn.fnamemodify(path, ':h'), 'p')
+    vim.fn.writefile(source, path)
+  end
+  if current_chapter() ~= chapter then vim.cmd.edit(vim.fn.fnameescape(path)) end
+  if refresh then refresh_intro(source) end
   attach()
-  vim.notify 'Tutorial controls: Space tn/tp next/previous, ti hint, tc check, tm self-mark. Save with :w.'
+  if not refresh then vim.notify 'Press Space tn to begin. Space ti gives you a hint.' end
 end
 
 local function lab()
@@ -283,8 +320,9 @@ end
 function tutorial.setup()
   local options = {
     nargs = '?',
+    bang = true,
     complete = function() return { '1', '2', '3' } end,
-    desc = 'Open tutorial chapter 1, 2, or 3 (default: 1)',
+    desc = 'Open chapter 1, 2, or 3; ! refreshes only its introduction',
   }
   local function open_command(args)
     local chapter = args.args == '' and '1' or args.args
@@ -292,10 +330,11 @@ function tutorial.setup()
       vim.notify('Choose :Tut 1 (basics), :Tut 2 (editing), or :Tut 3 (workflow).', vim.log.levels.WARN)
       return
     end
-    open(chapter)
+    open(chapter, args.bang)
   end
   vim.api.nvim_create_user_command('KickstartTutorial', open_command, options)
   vim.api.nvim_create_user_command('Tut', open_command, options)
+  vim.cmd [[cnoreabbrev <expr> tut getcmdtype() == ':' && getcmdline() ==# 'tut' ? 'Tut' : 'tut']]
   vim.api.nvim_create_user_command('TutLab', lab, { desc = 'Create/open the disposable tutorial Lua project without replacing existing files' })
 
   vim.api.nvim_create_user_command('TutorialCheck', function() check(false) end, { desc = 'Check this chapter’s editing challenges' })

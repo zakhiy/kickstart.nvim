@@ -1,6 +1,6 @@
 # Chapter 3: build your working cockpit
 
-Open with :Tut 3. Prerequisites: Chapter 1's files/windows and basic code editing.
+Open with :tut 3. Prerequisites: Chapter 1's files/windows and basic code editing.
 Plan roughly 60–100 minutes for the main sections, excluding installation delays.
 Optional linting/debugging may need another session. Estimates are not measured.
 This chapter teaches configured tools AND how to diagnose missing ones. It does
@@ -8,14 +8,11 @@ not silently install plugins, enable optional modules, change init.lua, or run G
 
 ## Flight controls + safety
 
-Space tn/tp navigates; ti hints; tm self-marks; tc reports the chapter's checks.
-All missions here are SELF-ASSESSED: there is no fake automatic tooling score.
-10 XP per completed task; ENGINEER is a long-term goal, not permission to proceed.
-Read first, try the task, return to chapter-3.md, then Space tm on its checkbox.
-Save before leaving any workbook with :w. :Tut 1/2/3 opens another saved chapter.
-Your Chapter 1 and 2 edits stay separate. Esc means the actual Escape key.
-Keep optional missions unchecked until prerequisites exist; don't install tools
-you don't need just to earn points. Downloads are deliberate, not tutorial actions.
+Space tn takes you forward; Space ti gives a hint. Save with :w before leaving.
+Try a mission, return to its checkbox here, then press Space tm to record it.
+These tasks happen across files and tools, so you're the judge — no automatic PASS.
+If a tool isn't ready, skip that task. You don't need every point to be productive,
+and you shouldn't install something just to earn a badge.
 
 ## 1. A disposable project, not your production code
 
@@ -26,7 +23,7 @@ heading for later exercises. This folder is NOT initially a Git repository.
 Opening the lab does not change your working directory or install anything.
 While main.lua is current, :lcd %:p:h sets this window's directory to the lab.
 Use :pwd to verify. For later shell/Git commands, verify the directory again!
-Return with Space Space, selecting chapter-3.md, or :Tut 3 after saving your code.
+Return with Space Space, selecting chapter-3.md, or :tut 3 after saving your code.
 Record your original :pwd now so you can restore it with :lcd /your/original/path.
 
 - [ ] `lab` Save this workbook, run :TutLab, inspect main.lua/helper.lua, then return.
@@ -233,5 +230,8 @@ random. Another language needs its OWN adapter and launch configuration.
 - [ ] `restore_directory` Restore the original window directory recorded in section 1; verify :pwd.
 
 Save :w. Share chapter-3.md for review (:echo expand('%:p') reveals its path).
+Space tp goes back. After saving, use :tut 1, :tut 2, or :tut 3 to switch chapters. Each keeps
+its own progress. :tut! 3 refreshes only the intro above section 1, replacing
+personal notes there without touching exercises.
 Keep optional tasks unchecked when deferred. ENGINEER rank isn't a requirement
 for daily productivity; a reliable edit → inspect → save habit is the real reward.
