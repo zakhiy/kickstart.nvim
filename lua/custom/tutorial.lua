@@ -73,6 +73,7 @@ local function render()
     total = total + 1
     if task.complete then complete = complete + 1 end
     local label = task.complete and '  PASS +10 XP' or (targets[task.id] and '  IN PROGRESS' or '  SELF-CHECK')
+    if task.complete and not targets[task.id] then label = '  DONE (SELF-MARKED) +10 XP' end
     if targets[task.id] and not task.valid then label = '  RESTORE EXERCISE/END MARKERS' end
     vim.api.nvim_buf_set_extmark(0, namespace, task.row - 1, 0, {
       virt_text = { { label, task.complete and 'DiagnosticOk' or 'DiagnosticInfo' } },
@@ -89,7 +90,7 @@ local function workbook_path() return vim.fn.stdpath 'data' .. '/kickstart-tutor
 local function is_workbook()
   local path = workbook_path()
   if vim.api.nvim_buf_get_name(0) == (vim.uv.fs_realpath(path) or path) then return true end
-  vim.notify('Open your workbook with :KickstartTutorial first.', vim.log.levels.WARN)
+  vim.notify('Open your workbook with :Tut first.', vim.log.levels.WARN)
   return false
 end
 
@@ -209,6 +210,7 @@ function tutorial.setup()
     attach()
     vim.notify 'Tutorial controls: Space tn/tp next/previous, ti hint, tc check, tm self-mark. Save with :w.'
   end, { desc = 'Open your resumable Kickstart workbook' })
+  vim.api.nvim_create_user_command('Tut', function() vim.cmd 'KickstartTutorial' end, { desc = 'Open your resumable Kickstart workbook' })
 
   vim.api.nvim_create_user_command('TutorialCheck', function() check(false) end, { desc = 'Check the five editing challenges' })
   vim.api.nvim_create_user_command('TutorialNext', function() navigate(1) end, { desc = 'Next unfinished mission' })

@@ -4,11 +4,12 @@
 
 ### Local interactive tutorial
 
-Run `:KickstartTutorial` for a concise workbook tailored to this configuration.
+Run `:Tut` (`:KickstartTutorial` also works) for a workbook tailored to this configuration.
 Practice motions, editing, search, windows, LSP, Git, and the config sections.
 Live badges check five editing challenges and track XP. Use buffer-local
 `Space tn/tp` for next/previous missions, `Space ti` for hints, `Space tc` to
-check, and `Space tm` to self-mark workflow missions. Save with `:w` to record
+check, and `Space tm` to self-mark workflow missions. Self-marking records
+"I tried this" for tasks without a gradeable text answer. Save with `:w` to record
 results and reopen to resume. Existing personal workbooks gain these controls
 without replacing their edits. Advanced topics are planned for Chapter 2.
 Next-mission navigation pauses at new lesson headings so explanations come first.

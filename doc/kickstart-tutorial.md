@@ -1,17 +1,18 @@
 # Kickstart: from passenger to pilot
 
 Chapter 1: an interactive workbook for THIS config, not an old video.
-Do sections 1–4 first (about 20 minutes); return for the rest.
-Allow 45–75 minutes for the full chapter, excluding tool setup.
+Do sections 1–4 first (about 20–30 minutes); return for the rest.
+Allow 45–75 minutes for the full chapter, excluding tool setup and extra practice.
+These are rough planning estimates, not measured completion times.
 Accuracy before speed. Arrow keys are allowed. Learn a few keys at a time.
 This covers everyday Kickstart workflows, not every plugin or Vim feature.
 
 ## Your cockpit
 
-Open with :KickstartTutorial. This creates a personal copy in Neovim's
+Open with :Tut (:KickstartTutorial still works). This creates a personal copy in Neovim's
 data directory; the template stays untouched. No notes directory is required.
 Markdown rendering is disabled only in this workbook so markers stay visible.
-:w saves edits AND progress. Reopen with :KickstartTutorial to resume.
+:w saves edits AND progress. Reopen with :Tut to resume.
 Live badges grade editing blocks as you type; the header tracks XP and rank.
 Each completed mission earns 10 XP. Complete all missions to become PILOT.
 Space tn / :TutorialNext jumps to the next unfinished mission (wraps around).
@@ -28,6 +29,11 @@ You can also put the cursor on a checkbox's space and type rx to mark it.
 To unmark a task, put the cursor on its x and type r followed by Space.
 Checkpoints are not exams: automatic checks assess results, not keystrokes.
 Workflow missions remain self-assessed, not secretly tracked or auto-verified.
+Self-mark means "I tried this and understand it": returning from another file,
+hovering a symbol, or previewing a Git hunk leaves no reliable answer to grade.
+After trying a workflow mission, put the cursor on its checkbox and press Space tm.
+It gets a DONE (SELF-MARKED) badge, not an automatic PASS. XP is a motivation
+counter, not proof of mastery. Leave tasks unchecked if you haven't tried them.
 Keep the exercise/end markers intact and edit only the lines between them.
 First-time route: read a section, try its missions in order, then go to the next.
 Use Space tm on a workflow checkbox AFTER returning from its project exercise.
