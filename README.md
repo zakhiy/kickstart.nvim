@@ -2,6 +2,21 @@
 
 ## Introduction
 
+### Local interactive tutorial
+
+Run `:KickstartTutorial` for a concise workbook tailored to this configuration.
+Practice motions, editing, search, windows, LSP, Git, and the config sections.
+Live badges check five editing challenges and track XP. Use buffer-local
+`Space tn/tp` for next/previous missions, `Space ti` for hints, `Space tc` to
+check, and `Space tm` to self-mark workflow missions. Save with `:w` to record
+results and reopen to resume. Existing personal workbooks gain these controls
+without replacing their edits. Advanced topics are planned for Chapter 2.
+Next-mission navigation pauses at new lesson headings so explanations come first.
+Your personal copy lives under Neovim's data directory; the source template is
+`doc/kickstart-tutorial.md`. The `notes/` directory is not needed for the tutorial.
+No extra plugins or downloads are needed for the editing challenges; LSP,
+formatting, search, and Git missions depend on the corresponding tools being ready.
+
 A starting point for Neovim that is:
 
 * Small
