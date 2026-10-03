@@ -13,7 +13,7 @@ results and reopen to resume. Existing personal workbooks gain these controls
 without replacing their edits. Advanced topics are planned for Chapter 2.
 Next-mission navigation pauses at new lesson headings so explanations come first.
 Your personal copy lives under Neovim's data directory; the source template is
-`doc/kickstart-tutorial.md`. The `notes/` directory is not needed for the tutorial.
+`doc/kickstart-tutorial.md`.
 No extra plugins or downloads are needed for the editing challenges; LSP,
 formatting, search, and Git missions depend on the corresponding tools being ready.
 
