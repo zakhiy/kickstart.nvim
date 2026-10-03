@@ -13,6 +13,8 @@ Open with :Tut (:KickstartTutorial still works). This creates a personal copy in
 data directory; the template stays untouched. No notes directory is required.
 Markdown rendering is disabled only in this workbook so markers stay visible.
 :w saves edits AND progress. Reopen with :Tut to resume.
+After saving, :Tut 2 opens power editing; :Tut 3 opens tooling and workflow.
+Each chapter has its own workbook and score, preserving this chapter's progress.
 Live badges grade editing blocks as you type; the header tracks XP and rank.
 Each completed mission earns 10 XP. Complete all missions to become PILOT.
 Space tn / :TutorialNext jumps to the next unfinished mission (wraps around).
@@ -136,12 +138,14 @@ In Telescope: type to filter, Ctrl-n/Ctrl-p select, Enter opens, Esc closes.
 Press Space and pause for which-key hints; Space sk searches actual mappings.
 Neo-tree: TWO backslashes reveal the tree in this config; Enter opens a file.
 Inside the tree, TWO backslashes close it. It is not a single-backslash toggle.
+Before the grep mission, record your original :pwd so you can restore it later.
 
 - [ ] `discover` Use Space sk to find the mapping for Format buffer.
 - [ ] `files` Use Space sn to open init.lua; return with Space Space.
 - [ ] `grep` In init.lua, run :lcd %:p:h, then Space sg and search mapleader; return.
 Here :lcd sets THIS window's working directory to init.lua's parent directory.
 Run it only while init.lua is current, not while reading the workbook.
+After the mission, restore the original window directory with :lcd /original/path.
 - [ ] `tree` Reveal Neo-tree, open a file, then close the tree.
 
 ## 5. Buffers aren't windows
@@ -232,8 +236,9 @@ For later review, share your saved workbook and ask for feedback on unchecked
 tasks. Checked workflow tasks mean self-reported completion, not automated proof.
 Run :echo expand('%:p') to find the saved file to attach or paste for review.
 
-## Chapter 2: advanced missions (planned, not yet implemented)
+## Next chapters
 
-Later: registers and clipboard, macros, advanced Visual mode, terminal workflows,
-snippets and mini plugins, installing servers/formatters, and plugin customization.
-Optional debugging and linting will follow when those plugins are enabled.
+Save first, then :Tut 2 for registers, macros, Visual blocks, mini.surround,
+mini.ai, and safer bulk editing. :Tut 3 covers a disposable project, servers,
+formatters, snippets, quickfix, terminals, Git review, custom modules, and optional
+linting/debugging. Chapters are independent: you can revisit an unchecked task later.
