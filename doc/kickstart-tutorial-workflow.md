@@ -1,166 +1,289 @@
-# Chapter 3: build your working cockpit
+# Chapter 3: connect tools to an editing workflow
 
-Open with :tut 3. Prerequisites: Chapter 1's files/windows and basic code editing.
-Plan roughly 60–100 minutes for the main sections, excluding installation delays.
-Optional linting/debugging may need another session. Estimates are not measured.
-This chapter teaches configured tools AND how to diagnose missing ones. It does
-not silently install plugins, enable optional modules, change init.lua, or run Git.
+Open with `:tut 3` after Chapter 1's files, windows, and basic editing.
+60–100 minutes, excluding tool installation and optional linting/debugging.
 
-## Flight controls + safety
+## Controls
 
-Space tn takes you forward; Space ti gives a hint. Save with :w before leaving.
-Try a mission, return to its checkbox here, then press Space tm to record it.
-These tasks happen across files and tools, so you're the judge — no automatic PASS.
-If a tool isn't ready, skip that task. You don't need every point to be productive,
-and you shouldn't install something just to earn a badge.
+Space tn continues, Space ti hints, and `:w` saves. These tasks happen across
+files and tools, so their results aren't automatically graded.
+Return to chapter-3.md with Space twice and use Space tm after verifying a task's result.
 
-## 1. A disposable project, not your production code
+## 1. Create the Chapter 3 lab and set its search directory
 
-:TutLab creates a small Lua project under Neovim's data directory and opens main.lua.
-It includes helper.lua, .luarc.json, .stylua.toml, and lint-demo.md. Existing files are NEVER
-overwritten. There is deliberately uneven Lua spacing and a malformed Markdown
-heading for later exercises. This folder is NOT initially a Git repository.
-Opening the lab does not change your working directory or install anything.
-While main.lua is current, :lcd %:p:h sets this window's directory to the lab.
-Use :pwd to verify. For later shell/Git commands, verify the directory again!
-Return with Space Space, selecting chapter-3.md, or :tut 3 after saving your code.
-Record your original :pwd now so you can restore it with :lcd /your/original/path.
+The **Chapter 3 lab** is `kickstart-tutorial/lab` under Neovim's data directory,
+not Chapter 1's lab-1 directory. `:TutLab` (or `:TutLab 3`) creates its files and opens `main.lua`.
+Existing files are kept. It starts without a Git repository.
 
-- [ ] `lab` Save this workbook, run :TutLab, inspect main.lua/helper.lua, then return.
+| Lab file | What it's for |
+| --- | --- |
+| main.lua | Calls helper.greet with a name, then prints the greeting |
+| helper.lua | Defines helper.greet, which returns the greeting string |
+| .luarc.json | Marks the Lua language server's analysis directory |
+| .stylua.toml | Marks the StyLua server's formatting directory and sets its style |
+| lint-demo.md | A deliberately incorrect heading for optional linting |
 
-## 2. LSP: install ≠ configure ≠ attach
+Neovim's **working directory** is the folder printed by `:pwd`.
+Space sf finds files under it; Space sg searches saved file contents under it and requires ripgrep (`rg`).
+Opening a file doesn't change it or automatically select a project folder.
+`:lcd` changes it for this window.
+In `:lcd %:p:h`, `%` is the current file, `:p` makes its path absolute, and `:h`
+takes the parent folder. From main.lua, that means the lab directory.
+Set it to the Chapter 3 lab for its file searches. Record the old path before changing it.
 
-A server is an executable. Mason installs it; nvim-lspconfig supplies defaults;
-vim.lsp.config adds overrides; vim.lsp.enable starts it for matching files/roots.
-Your servers table already enables clangd, gopls, pyright, ts_ls, stylua, and lua_ls.
-lua_ls is the Neovim config name; lua-language-server is its Mason package name.
-This config's mason-lspconfig automatic_enable is false: merely installing some
-other server in :Mason does NOT enable it. Add it to the servers table if needed.
-Mason may download configured tools on startup; this tutorial does not trigger
-additional installations. Don't repeatedly reinstall a tool before diagnosing it.
+- [ ] `lab` Open the lab, set its search folder, and inspect its files.
+  1. In this workbook, run `:pwd` and note the full path somewhere safe.
+  2. Save with `:w`, then run `:TutLab`. You should see main.lua.
+  3. With main.lua current, run `:lcd %:p:h`, then `:pwd`; expect a path ending in kickstart-tutorial/lab.
+  4. Use Space sf to open helper.lua and inspect its greeting function.
+  5. Use Space twice to return to `chapter-3.md`. Mark this task there.
 
-In lab/main.lua: :set filetype? should say lua. :checkhealth vim.lsp shows clients.
-:lua vim.print(vim.lsp.get_clients({ bufnr = 0 })) lists clients for THIS buffer.
-No client? Check :Mason (g? explains its keys), :messages, and :LspLog; verify
-filetype, server executable, configuration, and root. The lab's .luarc.json helps
-lua_ls identify the project. If needed, deliberately install lua-language-server
-using :MasonInstall lua-language-server, then restart Neovim and reopen the lab.
-The lab helper module should resolve from the project root; inspect its client
-root if grd or grr gives surprising results. Do not run Lua project code to get LSP.
+After a restart or a directory change, run `:TutLab`, then `:lcd %:p:h` from main.lua before lab searches.
+Space twice lists open buffers. In its picker, Esc enters Normal mode; another Esc closes it.
 
-- [ ] `attach` Identify the lab buffer's attached client and its project root.
-- [ ] `lsp_loop` On greet in helper.greet, try K, grd, grr, and Ctrl-o to retrace the jump.
-- [ ] `project_rename` Use grn on greet to rename it salute; inspect BOTH lab files, then undo in BOTH.
-A workspace rename edits multiple buffers; one u in one file is not a global undo.
-Inspect and :w each restored file before continuing. Leave tasks unchecked if no
-server attaches; the remaining terminal/config-reading sections can still be done.
+## 2. Language servers: installed, configured, attached
 
-## 3. Formatting and diagnostics have different owners
+A language server understands code; an **attached client** is Neovim's active
+connection to that server for a file. These are three separate steps:
 
-Space f calls Conform. :ConformInfo reports external formatters and availability.
-Here formatters_by_ft is empty and lsp_format='fallback', so Conform currently
-relies on attached servers that support formatting. lua_ls formatting is disabled
-explicitly; the configured stylua LSP can provide it if it attaches successfully.
-The lab's .stylua.toml gives StyLua a project root and explicit formatting options.
-Installing an executable does not populate Conform's formatters_by_ft table.
-To choose external StyLua deliberately, add lua = { 'stylua' } inside that table
-in init.lua. Check :Mason for the stylua package, restart, then inspect :ConformInfo.
-This is optional; do not edit the config if your current formatting works.
-Formatting also runs on save except for C/C++; their save-time formatting is
-disabled in this config, while manual Space f remains available.
+1. **Install:** Mason downloads the server program.
+2. **Configure:** nvim-lspconfig supplies defaults, and `vim.lsp.config` adds overrides.
+3. **Enable:** `vim.lsp.enable` starts it for appropriate file types and analysis directories.
 
-- [ ] `formatter` In main.lua, format its uneven settings line; inspect what changed.
-- [ ] `diagnostic` Add a reference to an unknown global in lab/main.lua, inspect Space sd, then undo it.
-Formatting rearranges text; diagnostics describe problems. A linter can produce
-diagnostics too, but a formatting tool needn't diagnose missing names.
-Return to this workbook before marking. Keep the source files saved/restored.
+The config's servers table already enables clangd, gopls, pyright, ts_ls,
+stylua, and lua_ls. The Neovim name `lua_ls` corresponds to Mason's package
+`lua-language-server`. Names aren't always identical across the two tools.
+Mason may install configured tools on startup. Installing another server manually
+won't enable it here: `automatic_enable` is false, so it needs configuration too.
 
-## 4. Snippets: create one before expecting a library
+### Check this file's connection
 
-LuaSnip is installed; Blink uses snippets={preset='luasnip'}. Friendly-snippets
-and its VS Code loader are COMMENTED OUT, so don't assume a big snippet library.
-For a reversible, session-only experiment, while main.lua is open, execute:
+The command `:set filetype?` reports the current file's type. The health report
+`:checkhealth vim.lsp` describes language-server connections. For an exact list
+attached to the current buffer, this Lua command prints the clients:
 
+```vim
+:lua vim.print(vim.lsp.get_clients({ bufnr = 0 }))
+```
+
+Here `bufnr = 0` means the current buffer, not every open file. Each client uses
+`root_dir` as its code-analysis directory, selected from marker files such as .luarc.json.
+This is independent of `:pwd`: changing a search directory with `:lcd` does not set an LSP root.
+For lua_ls in this lab, root_dir should end in kickstart-tutorial/lab.
+
+- [ ] `attach` Identify main.lua's language server and analysis directory.
+  1. Open main.lua with `:TutLab`. Run `:set filetype?`; expect `lua`.
+  2. Print the clients using the command above, or open the LSP health report.
+  3. Look for lua_ls with root_dir ending in kickstart-tutorial/lab. Close any health window with `:close`.
+  4. Return to the workbook and mark the task only if a client attached.
+
+If nothing attaches, check `:Mason` for installation status (`g?` opens its help).
+The command `:messages` shows editor messages; `:LspLog` opens the server log.
+Check the filetype, executable, enabled configuration, and root before reinstalling.
+If the Lua server is missing and you want it, `:MasonInstall lua-language-server`
+downloads it. Restart afterwards and reopen the lab. Otherwise, defer the LSP tasks.
+You do not need to run the Lua program to get code intelligence.
+
+### Navigate a symbol
+
+With the cursor on a symbol, `K` opens documentation, `grd` opens its definition,
+and `grr` finds references. Ctrl-o retraces earlier jumps in the current window.
+
+- [ ] `lsp_loop` Follow the greeting function from caller to definition and back.
+  1. In main.lua, put the cursor on `greet` in `helper.greet`, not on `greeting`.
+  2. Try `K`, then `grd`. You should reach the function in helper.lua.
+  3. Use `grr` to inspect references. Esc twice closes its picker.
+  4. Use Ctrl-o to retrace the jump, then return to the workbook.
+
+### Rename across files, then restore both
+
+The rename action `grn` asks the server to change a symbol and its references.
+A rename may change several buffers: one `u` in one file doesn't undo edits in the others.
+Inspect every changed file before continuing.
+
+- [ ] `project_rename` Rename greet to salute in the lab, then undo the experiment.
+  1. Open main.lua and helper.lua first. On greet in main.lua's helper.greet call, use grn and enter salute.
+  2. If asked to apply changes, inspect the listed paths and approve only these two lab files.
+  3. Check that the call in main.lua and definition in helper.lua both use salute.
+  4. Undo in each changed buffer. Check that both use greet again, then save each.
+  5. Return to the workbook.
+
+## 3. Formatting and diagnostics do different jobs
+
+**Formatting** changes layout, such as spacing. **Diagnostics** report problems,
+such as an unknown variable. Fixing spacing doesn't necessarily fix a code error.
+
+Space f asks Conform to format the current file. `:ConformInfo` reports available
+external formatters. Here its `formatters_by_ft` table is empty, so Conform falls
+back to an attached server that can format. lua_ls formatting is disabled;
+the configured stylua server can provide it. The lab's .stylua.toml supplies its root.
+Formatting also runs when you save, except that save-time formatting is disabled
+for C/C++ in this config. Manual Space f is still available for those languages.
+
+- [ ] `formatter` Format a pasted settings declaration in main.lua.
+  1. Replace only its settings line with `local settings={name="pilot",visits=1}`. Don't save yet.
+  2. Press Space f and wait for the result. Spacing should become consistent.
+  3. If nothing happens, inspect `:ConformInfo` and attached clients before repeating.
+  4. Save the result and return to the workbook.
+
+If you prefer an external formatter instead of LSP fallback, optionally put
+`lua = { 'stylua' }` inside Conform's `formatters_by_ft` table in init.lua.
+Make sure the stylua package is installed in Mason, then restart and inspect
+`:ConformInfo`. Installing a tool alone doesn't populate that table.
+No config change is needed if formatting already works.
+
+### Inspect a temporary error
+
+Space sd opens the diagnostic picker. Reports can take a moment to update after
+an edit. We'll make a harmless error in the lab, inspect it, then remove it.
+
+- [ ] `diagnostic` Observe a code error and clear it.
+  1. In main.lua, add a new line: `print(missing_name)`. Don't run this program.
+  2. Return to Normal mode, wait for analysis, then press Space sd.
+  3. Find main.lua's unknown-global report about missing_name. Esc twice closes the picker.
+  4. Undo the added line, save, and confirm its report disappears. Return here.
+
+## 4. Snippets: expand a template with editable placeholders
+
+A **snippet** inserts a template and lets you jump through its editable fields.
+LuaSnip handles those fields; Blink supplies completion. This config has both,
+but its friendly-snippets library is commented out, so we will add one ourselves.
+
+The following session-only registration creates a trigger called `greetdemo`.
+Its `${1:pilot}` field starts with pilot selected for replacement; `$0` is the
+final cursor stop. Restarting clears this temporary registration.
+
+```vim
 :lua require('luasnip').add_snippets('lua', { require('luasnip').parser.parse_snippet('greetdemo', 'print("Hello, ${1:pilot}")$0') })
+```
 
-On a new blank line, enter Insert mode and type greetdemo. Ctrl-Space opens the
-menu; Ctrl-n/p chooses the snippet; Tab accepts. Replace pilot with your name.
-Tab moves forward through placeholders, Shift-Tab backward; $0 is the final stop.
-Tab can also accept another completion while a snippet is active: hide an unwanted
-menu with Ctrl-e before jumping. Terminal Ctrl-Space interception? Let typing
-open the menu, or inspect :help blink-cmp-config-keymap.
-Delete your experiment afterwards if desired. Restart clears this session snippet.
-To keep it, place the registration code in a new lua/custom/plugins/snippets.lua
-file WITHOUT the :lua prefix: the existing loader runs it after LuaSnip/Blink
-setup. No new plugin needed.
+In Insert mode, Ctrl-Space opens completion and Ctrl-n / Ctrl-p chooses a result.
+Tab accepts it. For an expanded snippet, Tab moves forward through fields and
+Shift-Tab moves backward. If another completion menu appears, Ctrl-e closes it
+before you jump. If the terminal intercepts Ctrl-Space, let typing open the menu.
 
-- [ ] `snippet` Register greetdemo, expand it, replace the placeholder, and reach the final stop.
+- [ ] `snippet` Expand a greeting template and fill in its name field.
+  1. Open main.lua. Run the registration command above once.
+  2. On a blank line, enter Insert mode and type `greetdemo`.
+  3. Open completion, choose the snippet, and press Tab.
+  4. Replace the selected pilot with your name. Press Tab to reach the final stop.
+  5. Press Esc, inspect the line, and delete it if you don't want to keep it.
+  6. Save your code before returning to the workbook.
 
-## 5. Location list vs quickfix: two different queues
+To keep the registration, place its Lua code in `lua/custom/plugins/snippets.lua`
+without the `:lua` prefix. That loader runs after LuaSnip/Blink setup.
 
-Space q fills the CURRENT WINDOW's diagnostic location list. :lopen displays it;
-:lnext/:lprevious move through it; :lclose closes its view.
-Quickfix is a separate shared result queue. :copen shows it; :cnext/:cprevious
-navigates it; :cclose closes it. Populating one does not populate the other.
-Save lab files first. In main.lua, :lcd %:p:h, then run:
+## 5. Two result lists: location list and quickfix
 
-:vimgrep /TODO/j *.lua
-:copen
+A **location list** belongs to one window. Space q fills that window's list with
+diagnostics for its current buffer; `:lopen` shows it and `:lclose` closes it.
+A **quickfix list** is a separate, shared queue. `:copen` shows it and `:cclose`
+closes its view. Filling one list doesn't fill the other.
 
-This searches lab Lua files with Neovim's built-in search, not ripgrep. j fills
-the list without jumping immediately. Enter on a result opens it; :cnext visits
-the next result. Use :cfirst if you're at the end. The lab starts with two TODOs.
-Do NOT use :cdo to replace across everything until you've inspected the queue.
+We'll put both lab TODO comments in quickfix using Neovim's built-in search.
+The command `:vimgrep /TODO/j *.lua` searches for TODO in the Lua files in the
+working directory. `*.lua` means files ending in .lua; `j` queues the results
+without jumping immediately. This command doesn't depend on ripgrep.
+In quickfix, Enter visits the selected result. `:cnext` visits the next one;
+`:cfirst` restarts at the first when you're already at the end.
 
-- [ ] `quickfix` Populate TODO quickfix results, visit both files, close the result window.
-- [ ] `location` In a source window with a diagnostic, Space q then :lopen; explain why :copen differs.
-If no diagnostic remains, deliberately create and undo one as in section 3.
+- [ ] `quickfix` Collect and visit the lab's two TODO comments.
+  1. Save lab files. In main.lua, run `:pwd` and confirm it is the lab folder.
+  2. If the folder changed, reset it from main.lua with `:lcd %:p:h` as in section 1.
+  3. Run `:vimgrep /TODO/j *.lua`, then `:copen`.
+  4. Visit the first result with Enter, then use `:cnext` to visit the other source file.
+  5. Close the quickfix window with `:cclose`, then return to the workbook.
 
-## 6. Terminal workflows: the shell lives in a buffer
+### Inspect this window's diagnostics
 
-In a lab source window, :split then :terminal opens your shell in another window.
-Press i to send keystrokes to the shell. Your config maps Esc Esc to leave
-Terminal mode; Ctrl-\ then Ctrl-n is the built-in alternative.
-Only after leaving Terminal mode do Ctrl-h/j/k/l navigate editor windows.
-Your tmux navigator may move into a tmux pane when you hit an editor edge.
-Press i to return to the shell. Run pwd, then printf 'lab ready\n' as harmless tests.
-Use exit to end that shell. :close closes its view; :bd removes the stopped buffer.
-Closing a window is not the same as stopping a running process. Don't launch an
-untrusted command just because you're inside the practice project.
+For the next task, a diagnostic must exist. You can temporarily add
+`print(missing_name)` to main.lua as in section 3, then remove it afterwards.
+Run the location-list shortcut from the source window, not from this workbook.
 
-- [ ] `terminal` Print lab ready, leave Terminal mode, switch windows, then exit the shell.
+- [ ] `location` Display a source file's diagnostics in its window-specific list.
+  1. In the source window with a diagnostic, press Space q, then run `:lopen`.
+  2. Inspect the entries. This is a different list from your TODO quickfix queue.
+  3. Close it with `:lclose`. Remove the test error, save, and return here.
 
-## 7. Git: make review a queue, staging a deliberate act
+For later: `:lnext` / `:lprevious` navigate the location list; `:cprevious` goes
+back in quickfix. Don't run bulk-edit commands over either queue until you inspect it.
 
-OPTIONAL prerequisite: a disposable Git repository. You can use an existing one
-or deliberately create one in the LAB ONLY. This tutorial never initializes it.
-If creating one, save lab files, open a terminal, verify pwd is the lab directory,
-then git init, git add ., and git commit -m "Tutorial lab baseline".
-Use your existing Git identity; if it isn't configured, skip this mission rather
-than changing global settings just to finish the course.
-After the baseline, change and save a greeting in helper.lua. ]c/[c navigate,
-Space hp previews, Space hs stages the current hunk, and Space hd compares with
-the index. :diffoff closes diff MODE; :close closes an extra diff window.
-In the terminal, git diff and git diff --cached distinguish unstaged and staged.
-There is no Space hu mapping in this config. To unstage the practice file while
-keeping its working edit, use git restore --staged -- helper.lua in the lab shell.
-Space hq puts this file's hunks in quickfix; Space hQ collects repository hunks.
-Space hr/hR discards working edits: avoid those keys unless you intend that.
+## 6. Terminal workflows: a shell inside an editor window
 
-- [ ] `stage_review` Stage a LAB hunk, inspect git diff --cached, then unstage without deleting it.
-- [ ] `git_queue` Collect lab hunks with Space hQ and inspect :copen; then close the queue.
+A terminal buffer runs a shell. Its **Terminal mode** sends keystrokes to that
+shell; Normal mode lets you navigate its output and editor windows.
+The command `:terminal` opens it. In this config, Esc twice leaves Terminal mode;
+Control-backslash followed by Ctrl-n is the built-in alternative.
+Use `i` to send keystrokes to the shell again. Window keys work after you leave
+Terminal mode, not while the shell is consuming them.
 
-## 8. Extend the config without cargo-culting a video
+- [ ] `terminal` Print a message, switch windows, then stop the shell cleanly.
+  1. From a lab source window, run `:split` to make a second window, then `:terminal`.
+  2. Press `i`. In the shell, type `pwd` and Enter; verify it is the lab directory.
+  3. Type `printf 'lab ready\n'` and Enter. You should see lab ready.
+  4. Press Esc twice, then Ctrl-h / Ctrl-j / Ctrl-k / Ctrl-l to switch windows.
+  5. Return to the terminal, press `i`, then type `exit` and Enter to stop the shell.
+  6. Close its view with `:close` and return to the workbook.
 
-Independent lua/custom/plugins/*.lua files load automatically. Their order is
-unspecified: keep dependent setup together. Do not require one from init.lua too,
-or you may run its setup twice. Your plugin manager is vim.pack, NOT Lazy.
-vim.pack.add { 'https://github.com/OWNER/REPO' } installs/loads a plugin; only then
-call its documented setup function. The module name needn't equal the repo name.
-Never paste or source code you haven't inspected. Restart after changes rather
-than sourcing all of init.lua repeatedly (it can recreate setup/side effects).
+Closing a window doesn't stop its shell. After exit, `:bd` removes the terminal buffer.
+If you run Neovim inside tmux, Ctrl-h/j/k/l can cross into a tmux pane at an editor edge.
 
-No-download customization exercise: create lua/custom/plugins/practice.lua with:
+## 7. Git: review first, stage deliberately
+
+This section uses the Chapter 3 lab as a Git repository.
+A **baseline commit** records a file snapshot to compare later changes with.
+If the lab has no commit yet, save its files, open main.lua, and run `:lcd %:p:h`.
+Check `:pwd` ends in kickstart-tutorial/lab. `:!` runs each shell command below from that directory.
+`git init` creates the repository, `git add .` selects files for the commit, and `git commit` records them.
+The name/email options apply only to this commit; they don't change your global Git identity.
+
+```vim
+:!git init
+:!git add .
+:!git -c user.name=Tutorial -c user.email=tutorial@example.invalid commit -m "Tutorial lab baseline"
+```
+
+Gitsigns groups changed lines into hunks. `]c` / `[c` move between them and Space hp
+previews one. Space hs stages a hunk. Git's **index** is the staging area for the
+next commit; staging changes that area, not the working file.
+From a lab file, `:!git diff` shows unstaged changes; `:!git diff --cached` shows staged ones.
+`:!git restore --staged -- helper.lua` removes helper.lua from the index's
+changes while keeping its working edits. There is no Space hu mapping here.
+
+- [ ] `stage_review` Stage a lab hunk, review it, and unstage without deleting the edit.
+  1. After the baseline, change the greeting string returned by helper.greet in helper.lua and save it.
+  2. Visit its hunk with `]c`, preview with Space hp, then stage with Space hs.
+  3. From helper.lua, run `:!git diff --cached` and inspect the staged greeting change.
+  4. Run `:!git restore --staged -- helper.lua`, then `:!git diff`; the greeting edit should still appear.
+  5. Return to the workbook; no new commit is needed for this task.
+
+### Queue repository changes
+
+Space hQ collects repository hunks in quickfix; Space hq collects only this file's.
+
+- [ ] `git_queue` Inspect repository changes as a result queue.
+  1. In a changed lab source file, press Space hQ, then run `:copen`.
+  2. Inspect or visit a hunk, then close the queue with `:cclose`.
+  3. Return to the workbook before marking the task.
+
+Space hr / Space hR discard working edits. Space hd compares with the index;
+`:diffoff!` exits diff mode in all windows. Close only the read-only comparison window with `:close`.
+
+## 8. Extend the config with a small, reversible addition
+
+The loader runs independent files in `lua/custom/plugins/` automatically.
+Their order isn't guaranteed: keep dependent setup together. Don't also require
+an automatically loaded file from init.lua, which could run its setup twice.
+Restart after config changes rather than sourcing all of init.lua repeatedly.
+
+A **mapping** assigns an action to a key sequence. Space sn lists Neovim config files independently of `:pwd`.
+The following Lua code maps
+Space uP to displaying the current file's full path; `<leader>` means Space here.
+First check the existing mappings with Space sk to make sure Space uP is free.
+The new file belongs in your Neovim config, not inside the lab directory.
+The command `:edit` opens a file, or starts a new one if that path doesn't exist.
+Relative paths start in the working directory, so we'll set it to the config first.
+Use another unused filename if practice.lua already exists; don't overwrite existing config.
 
 ```lua
 vim.keymap.set('n', '<leader>uP', function()
@@ -168,39 +291,67 @@ vim.keymap.set('n', '<leader>uP', function()
 end, { desc = 'Practice: show current file path' })
 ```
 
-First use Space sk to check that Space uP isn't already mapped. Restart, test it,
-then remove the practice file and restart if you don't want to keep the mapping.
-Track desired changes with Git; review the diff before committing.
-The lockfile is nvim-pack-lock.json. :help vim.pack explains updates/rollback.
-:lua vim.pack.update() downloads updates and shows a confirmation buffer; :w
-there confirms, :q discards. Read :help vim.pack before actually updating.
-No update is required for this course. Avoid changing many plugins at once.
+- [ ] `custom_map` Add and test the practice mapping without installing a plugin.
+  1. Check Space uP is free. Save, then open init.lua with Space sn.
+  2. From init.lua, run `:lcd %:p:h`, then `:edit lua/custom/plugins/practice.lua`.
+  3. Put the Lua code above in the new file and save. Restart Neovim to load it.
+  4. Open any file and press Space uP. It should display that file's full path.
+  5. If you don't want the mapping, remove the practice file and restart again.
+  6. Reopen `:tut 3` and mark the task. Review config changes before committing them.
 
-- [ ] `custom_map` Add, test, and optionally remove the practice mapping using the custom loader.
-- [ ] `pack_read` Locate vim.pack.add and nvim-pack-lock.json; read update confirmation help without updating.
+### Read the plugin update procedure before using it
 
-## 9. Optional linting and debugging: opt in with prerequisites
+Your plugin manager is `vim.pack`, not Lazy. Its `vim.pack.add` calls install/load
+plugins before their setup functions run. The file `nvim-pack-lock.json` records
+plugin revisions so you can review what changed.
+The update procedure is documented in `:help vim.pack`: `:lua vim.pack.update()`
+downloads changes and opens a confirmation buffer. In THAT buffer, `:w` accepts
+updates and `:q` discards them. You do not need to run an update for this course.
 
-These modules are present but disabled in init.lua. Don't press their mappings
-and assume they work; choose tools for a language you actually use.
-Read lua/kickstart/plugins/lint.lua: it installs nvim-lint when enabled, but
-expects the Markdown linter executable to be installed separately. To opt in,
-deliberately install markdownlint (e.g. :MasonInstall markdownlint), uncomment
-require 'kickstart.plugins.lint' in init.lua, and restart. Open lab/lint-demo.md.
-The malformed #Lint demo heading should produce a missing-space diagnostic.
-The module tries linting on BufEnter, BufWritePost, and InsertLeave. Fix it to
-# Lint demo, save, inspect diagnostics. Return; leave this unchecked if disabled.
-Linting also runs on workbook Markdown: use Space q and :lopen from lint-demo.md
-to inspect that source buffer's diagnostics rather than every open workbook's.
+- [ ] `pack_read` Find the plugin declarations and read how updates are confirmed.
+  1. Open init.lua and locate a `vim.pack.add` call. Find nvim-pack-lock.json too.
+  2. Run `:help vim.pack` and read the update/rollback explanation.
+  3. Close help with `:close`. Do not update plugins just to mark this task.
 
-- [ ] `lint` If enabled, observe the lab heading diagnostic and fix it; otherwise defer.
+For a future plugin, use its documented URL and setup API, not a placeholder
+copied from a video. Its Lua module name may differ from its repository name.
 
-Read lua/kickstart/plugins/debug.lua: this example is Go-specific, not a universal
-Python/JavaScript debugger. It configures DAP, dap-ui, dap-go, and Delve. Opt in by
-uncommenting require 'kickstart.plugins.debug' and restarting ONLY if you want Go
-debugging. Prerequisites: Go, a working Go project, and Delve installed/available.
-For a disposable Go project, make a new folder, run go mod init tutorial.local/demo,
-and create main.go containing:
+## 9. Optional linting and debugging: know what you're enabling
+
+These modules are present but disabled. You don't need either for the earlier
+chapters. Choose them only if they fit a language or workflow you use.
+
+### Lint a Markdown heading
+
+A **linter** reports style or code problems as diagnostics. The optional
+`lua/kickstart/plugins/lint.lua` module loads nvim-lint, but its configured
+Markdown linter, markdownlint, must be installed separately.
+If you opt in, `:MasonInstall markdownlint` downloads that tool. In init.lua,
+uncomment `require 'kickstart.plugins.lint'`, then restart to enable the module.
+It runs on file entry, after saving, and after leaving Insert mode.
+The lab heading `#Lint demo` lacks a space; a normal Markdown heading is `# Lint demo`.
+
+- [ ] `lint` Observe and fix the lab's heading diagnostic, if you enabled linting.
+  1. Run `:TutLab`, then `:lcd %:p:h` from main.lua. Use Space sf to open lint-demo.md.
+  2. Wait for its missing-space report.
+  3. Inspect current-file reports using Space q, then `:lopen`; close with `:lclose`.
+  4. Add the space after #, save, and verify that report disappears. Return to chapter-3.md.
+
+The linter also sees Markdown workbooks. Inspect from the lab source window to
+avoid confusing its reports with reports about instructional prose.
+
+### Debug a small Go program
+
+A **debugger** pauses a running program so you can inspect values and step through
+instructions. This optional example is Go-specific, not a universal debugger.
+The module `lua/kickstart/plugins/debug.lua` configures DAP (the debug protocol),
+its UI, dap-go, and the Go debugger Delve. Read it before enabling it.
+Prerequisites are Go, a working Go project, and Delve installed/available. If you
+choose this workflow, uncomment `require 'kickstart.plugins.debug'` and restart.
+
+For a disposable Go project, create a separate folder and open a shell there.
+The shell command `go mod init tutorial.local/demo` writes go.mod, marking that folder
+as a Go module. Then create main.go beside go.mod with this complete program:
 
 ```go
 package main
@@ -214,24 +365,41 @@ func main() {
 }
 ```
 
-Open that file from the Go project. Space b toggles a breakpoint on visits++;
-F5 starts/continues (choose Debug if prompted); F2 steps over; F1 steps into;
-F3 steps out; F7 toggles the UI. macOS may require Fn for actual function keys.
-Inspect visits in the UI before/after stepping; :lua require('dap').terminate()
-stops the session. Keep ordinary test runs separate from debugger runs.
-If startup fails, inspect :messages and :help dap; don't toggle more plugins at
-random. Another language needs its OWN adapter and launch configuration.
+A **breakpoint** pauses before a chosen line runs. Space b toggles one.
+F5 starts/continues debugging; F2 steps over one instruction; F1 steps into a call;
+F3 steps out of a function; F7 shows/hides the debugger UI. On macOS you may need Fn.
+The command `:lua require('dap').terminate()` stops a debug session.
 
-- [ ] `debug` If Go debugging is enabled, hit the breakpoint, inspect visits, step, terminate.
+- [ ] `debug` Pause before incrementing visits, inspect it, and step once.
+  1. Open main.go from the folder containing go.mod. Put the cursor on visits++ and press Space b.
+  2. Press F5; choose Debug if prompted. The program should pause at that line.
+  3. Inspect visits in the debugger UI: it should be 1 before the increment.
+  4. Press F2. Inspect visits again: it should now be 2.
+  5. Stop with `:lua require('dap').terminate()`, then return to this workbook.
 
-## Graduation: close the loop, not every optional checkbox
+If startup fails, inspect `:messages` and `:help dap` rather than enabling more
+plugins at random. Another programming language needs its own adapter and launch setup.
 
-- [ ] `workflow_lap` Open the lab, inspect a symbol, edit, format, inspect results, save, and review your diff if using Git.
-- [ ] `restore_directory` Restore the original window directory recorded in section 1; verify :pwd.
+## Recap: edit, inspect, save
 
-Save :w. Share chapter-3.md for review (:echo expand('%:p') reveals its path).
-Space tp goes back. After saving, use :tut 1, :tut 2, or :tut 3 to switch chapters. Each keeps
-its own progress. :tut! 3 refreshes only the intro above section 1, replacing
-personal notes there without touching exercises.
-Keep optional tasks unchecked when deferred. ENGINEER rank isn't a requirement
-for daily productivity; a reliable edit → inspect → save habit is the real reward.
+- [ ] `workflow_lap` Complete a small lab edit and inspect the result before saving.
+  1. Reopen the Chapter 3 lab with `:TutLab`; set its directory with `:lcd %:p:h` if needed.
+  2. In main.lua, inspect a symbol and change the name in its settings table.
+  3. Format if available, inspect the result, and save.
+  4. Review the change with `:!git diff` if you created the baseline commit. Return here to mark the task.
+
+### Restore the search folder
+
+The lab changed this window's search folder in section 1. To restore it, give
+`:lcd` the original full path you recorded. For example, `:lcd /Users/you/project`
+is only an example: replace that path with your recorded directory, not the lab.
+If the path contains spaces, escape each space with a backslash.
+
+- [ ] `restore_directory` Restore your original search folder.
+  1. Run `:lcd` followed by your recorded path. Press Enter.
+  2. Run `:pwd` and check that it prints the original folder.
+
+Save with `:w`. `:echo expand('%:p')` prints this workbook's path for sharing.
+Space tp goes back; `:tut 1`, `:tut 2`, and `:tut 3` switch chapters after saving.
+For updated lesson wording, `:tutupdate` preserves exercise answers and ticks,
+backs up the old workbook, and replaces prose. Personal notes remain in the backup.

@@ -6,16 +6,26 @@
 
 Type `:tut` (`:Tut` and `:KickstartTutorial` also work) for a workbook tailored to this configuration.
 Practice motions, editing, search, windows, LSP, Git, and the config sections.
+Chapter 1 has 33 tasks: guided edits, independent bug fixes, project navigation,
+and a C++/Python/Lua patch to review. It includes 18 workbook checks, three saved-file
+checks, optional hints, and a closing reference table.
 Open `:tut 2` for power editing or `:tut 3` for tooling and workflow; each chapter
 has its own saved workbook and rank. Live checkboxes, badges, and XP follow your editing results together.
+Markdown rendering stays enabled; graded checkbox icons reflect unsaved answers without adding undo steps.
 Use buffer-local `Space tn/tp` for next/previous missions, `Space ti` for hints, `Space tc` to
 check, and `Space tm` to self-mark workflow missions. Self-marking records
 "I tried this" for tasks without a gradeable text answer. Save with `:w` to record
 results and reopen to resume. Existing personal workbooks gain these controls
 without replacing their edits. `:tut!`, `:tut! 2`, or `:tut! 3` refreshes the introduction
 above section 1, replacing introductory notes but keeping exercises and progress.
-`:TutLab` creates a disposable Lua project for
-tooling exercises without overwriting existing lab files or installing anything.
+For lesson wording, `:tutupdate` preserves current exercise answers and ticks,
+backing up the entire old workbook first. To replace the retired Chapter 1 drills,
+use `:tutupdate!`: replacement tasks start fresh, and old answers/ticks remain in
+the backup. Unknown user-added tasks are never removed, even with `!`.
+Personal notes outside exercise blocks remain in the backup rather than the new prose.
+`:TutLab 1` opens the Chapter 1 C++/Python/Lua lab (`kickstart-tutorial/lab-1`);
+`:TutLab` opens the separate Chapter 3 Lua lab (`kickstart-tutorial/lab`).
+Neither overwrites existing files, installs tools, or runs Git.
 Next-mission navigation pauses at new lesson headings so explanations come first.
 Your personal copies live under Neovim's data directory; the source templates are
 `doc/kickstart-tutorial.md`, `doc/kickstart-tutorial-editing.md`, and

@@ -18,9 +18,18 @@ vim.pack.add {
   'https://github.com/iamcco/markdown-preview.nvim',
 }
 
-require('render-markdown').setup {
+local renderer = require 'render-markdown'
+local checkbox = renderer.default.checkbox
+renderer.setup {
   file_types = { 'markdown' },
   render_modes = { 'n', 'c', 't' },
+  checkbox = checkbox,
+  custom_handlers = {
+    markdown = {
+      extends = true,
+      parse = function(context) return require('custom.tutorial').markdown_checks(context, checkbox) end,
+    },
+  },
   completions = {
     lsp = { enabled = true },
   },
